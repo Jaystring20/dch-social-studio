@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpException,
   Param,
@@ -13,7 +14,6 @@ import {
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
 import { Organization, Role, User } from '@prisma/client';
-import { HttpForbiddenException } from '@gitroom/nestjs-libraries/services/exception.filter';
 import { GetPostsDto } from '@gitroom/nestjs-libraries/dtos/posts/get.posts.dto';
 import { GetPostsListDto } from '@gitroom/nestjs-libraries/dtos/posts/get.posts.list.dto';
 import { CheckPolicies } from '@gitroom/backend/services/auth/permissions/permissions.ability';
@@ -211,7 +211,9 @@ export class PostsController {
     // Only org admins can schedule or publish now. Team members save drafts,
     // which an admin then approves by scheduling them.
     if (rawBody?.type !== 'draft' && org.users[0]?.role === Role.USER) {
-      throw new HttpForbiddenException();
+      throw new ForbiddenException(
+        'Only admins can schedule or publish posts. Save it as a draft for an admin to approve.'
+      );
     }
 
     // Server-side validation — never trust the client to have validated.
