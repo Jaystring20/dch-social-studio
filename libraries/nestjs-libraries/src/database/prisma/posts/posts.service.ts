@@ -7,6 +7,7 @@ import {
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
+import { AnthropicService } from '@gitroom/nestjs-libraries/anthropic/anthropic.service';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -74,6 +75,7 @@ export class PostsService {
     private _mediaService: MediaService,
     private _shortLinkService: ShortLinkService,
     private _openaiService: OpenaiService,
+    private _anthropicService: AnthropicService,
     private _temporalService: TemporalService,
     private _refreshIntegrationService: RefreshIntegrationService
   ) {}
@@ -1439,7 +1441,7 @@ export class PostsService {
         continue;
       }
 
-      const content = await this._openaiService.repurposeForPlatform(
+      const content = await this._anthropicService.repurposeForPlatform(
         source.content,
         provider.name,
         provider.maxLength()

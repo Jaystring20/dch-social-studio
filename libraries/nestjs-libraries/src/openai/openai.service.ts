@@ -131,27 +131,6 @@ Clips must not overlap. Write the title and the post in this language, whatever 
     );
   }
 
-  async repurposeForPlatform(content: string, platform: string, maxLength: number) {
-    return (
-      (
-        await openai.chat.completions.create({
-          messages: [
-            {
-              role: 'system',
-              content: `Rewrite the post for ${platform}. Keep the meaning and the brand voice. Use at most ${maxLength} characters. Reply with the post text only.`,
-            },
-            {
-              role: 'user',
-              content,
-            },
-          ],
-          temperature: 0.7,
-          model: 'gpt-4.1',
-        })
-      ).choices[0].message.content || ''
-    );
-  }
-
   async generatePosts(content: string) {
     const posts = (
       await Promise.all([
