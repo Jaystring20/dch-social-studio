@@ -34,6 +34,7 @@ import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
+import { RepurposeDraftModal } from '@gitroom/frontend/components/launches/repurpose.draft.modal';
 import { capitalize } from 'lodash';
 import { SelectCustomer } from '@gitroom/frontend/components/launches/select.customer';
 import { CopilotPopup } from '@copilotkit/react-ui';
@@ -224,6 +225,16 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       modal.closeAll();
     }
   }, [activateExitButton, dummy]);
+
+  const repurpose = useCallback(() => {
+    modal.openModal({
+      title: t('repurpose_draft', 'Repurpose draft'),
+      maxSize: 800,
+      children: (close) => (
+        <RepurposeDraftModal postId={existingData.posts[0].id} close={close} />
+      ),
+    });
+  }, [existingData]);
 
   const deletePost = useCallback(async () => {
     setLoading(true);
@@ -1132,6 +1143,15 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                 <div>{t('delete_post', 'Delete Post')}</div>
               </button>
             )}
+            {existingData?.integration &&
+              existingData?.posts?.[0]?.state === 'DRAFT' && (
+                <button
+                  onClick={repurpose}
+                  className="cursor-pointer text-[15px] font-[600] h-[44px] px-[16px] rounded-[8px] bg-btnSimple"
+                >
+                  {t('repurpose', 'Repurpose')}
+                </button>
+              )}
             <DatePicker onChange={setPickerDate} date={pickerDate} />
             {!addEditSets && (
               <button
