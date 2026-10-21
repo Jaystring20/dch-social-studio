@@ -258,6 +258,14 @@ export class PostsController {
     return this._postsService.createPost(org.id, body, 'WEB');
   }
 
+  @Get('/:id/repurpose-brief')
+  repurposeBrief(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string
+  ) {
+    return this._postsService.repurposeBrief(org.id, id);
+  }
+
   @Post('/repurpose')
   @CheckPolicies([AuthorizationActions.Create, Sections.POSTS_PER_MONTH])
   repurposePost(
