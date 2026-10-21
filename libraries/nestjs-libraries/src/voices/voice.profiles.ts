@@ -66,8 +66,12 @@ export const VOICE_PROFILES: VoiceProfile[] = [
       'Name the cost honestly. Share hard-won lessons in the first person without oversharing.',
       'Close with one question or one instruction, not both.',
       'Use the recurring images (Chinese bamboo, the iceberg, Joseph’s granaries) when they fit the point, not in every piece.',
+      'Optimized for the channel: the first line works alone as a hook, and the piece ends on one clear takeaway.',
+      'Humanized: plain words a person would say out loud, with the author’s own phrasing kept.',
     ],
     avoid: [
+      'Em dashes. Use a comma, a colon or a new sentence instead.',
+      'AI-sounding phrasing such as "delve", "tapestry", "in today’s fast-paced world" or "unlock".',
       'Generic motivation with no framework behind it.',
       'Engagement bait such as "Thoughts?" or "Agree?".',
       'Titles or rankings that have not been checked.',
