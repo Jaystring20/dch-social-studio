@@ -19,6 +19,7 @@ import { GetPostsListDto } from '@gitroom/nestjs-libraries/dtos/posts/get.posts.
 import { CheckPolicies } from '@gitroom/backend/services/auth/permissions/permissions.ability';
 import { ApiTags } from '@nestjs/swagger';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
+import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
 import { CreateGeneratedPostsDto } from '@gitroom/nestjs-libraries/dtos/generator/create.generated.posts.dto';
 import { AgentGraphService } from '@gitroom/nestjs-libraries/agent/agent.graph.service';
 import { Response } from 'express';
@@ -255,6 +256,15 @@ export class PostsController {
 
     const body = await this._postsService.mapTypeToPost(rawBody, org.id);
     return this._postsService.createPost(org.id, body, 'WEB');
+  }
+
+  @Post('/repurpose')
+  @CheckPolicies([AuthorizationActions.Create, Sections.POSTS_PER_MONTH])
+  repurposePost(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: RepurposePostDto
+  ) {
+    return this._postsService.repurposePost(org.id, body);
   }
 
   @Post('/generator/draft')
