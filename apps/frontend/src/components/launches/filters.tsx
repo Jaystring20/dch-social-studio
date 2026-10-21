@@ -274,7 +274,7 @@ export const Filters = () => {
   const listStateOptions: { value: ListStateFilter; label: string }[] = [
     { value: 'all', label: t('all', 'All') },
     { value: 'scheduled', label: t('scheduled', 'Scheduled') },
-    { value: 'draft', label: t('draft', 'Draft') },
+    { value: 'draft', label: t('awaiting_approval', 'Awaiting approval') },
     { value: 'published', label: t('published', 'Published') },
   ];
 

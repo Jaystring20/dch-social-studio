@@ -34,6 +34,7 @@ import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
+import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { RepurposeDraftModal } from '@gitroom/frontend/components/launches/repurpose.draft.modal';
 import { capitalize } from 'lodash';
 import { SelectCustomer } from '@gitroom/frontend/components/launches/select.customer';
@@ -76,6 +77,9 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
   const [loading, setLoading] = useState(false);
   const toaster = useToaster();
   const modal = useModals();
+  const user = useUser();
+  // Team members save drafts; scheduling and publishing is for admins.
+  const canApprove = user?.role !== 'USER';
   const [showSettings, setShowSettings] = useState(false);
   const [mobileTab, setMobileTab] = useState<'edit' | 'preview'>('edit');
   const [mobileSheet, setMobileSheet] = useState<
@@ -1182,7 +1186,12 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                 Save Set
               </button>
             )}
-            {!addEditSets && (
+            {!addEditSets && !canApprove && (
+              <div className="text-[13px] text-textColor/70">
+                {t('an_admin_will_approve', 'Save as a draft. An admin will approve it.')}
+              </div>
+            )}
+            {!addEditSets && canApprove && (
               <div ref={postNowRef} className="group cursor-pointer relative">
                 <button
                   disabled={
