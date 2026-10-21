@@ -7,7 +7,6 @@ import {
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
-import { AnthropicService } from '@gitroom/nestjs-libraries/anthropic/anthropic.service';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -75,7 +74,6 @@ export class PostsService {
     private _mediaService: MediaService,
     private _shortLinkService: ShortLinkService,
     private _openaiService: OpenaiService,
-    private _anthropicService: AnthropicService,
     private _temporalService: TemporalService,
     private _refreshIntegrationService: RefreshIntegrationService
   ) {}
@@ -1416,8 +1414,43 @@ export class PostsService {
   }
 
   /**
-   * Turns one saved draft into a draft for each chosen channel. Every variant
-   * is saved as a draft, so nothing is scheduled until an admin approves it.
+   * Builds the prompt a team member pastes into Claude to write each channel's
+   * version of a saved draft. The channel limits come from the providers.
+   */
+  async repurposeBrief(orgId: string, postId: string) {
+    const source = await this._postRepository.getPostById(postId, orgId);
+    if (!source || source.state !== 'DRAFT') {
+      throw new BadRequestException('Only a saved draft can be repurposed');
+    }
+
+    const channels = (
+      await this._integrationService.getIntegrationsList(orgId)
+    )
+      .filter((integration) => !integration.disabled)
+      .map((integration) => {
+        const provider = this._integrationManager.getSocialIntegration(
+          integration.providerIdentifier
+        );
+        return provider
+          ? `- ${integration.name} (id: ${integration.id}, ${provider.name}): up to ${provider.maxLength()} characters`
+          : null;
+      })
+      .filter(Boolean);
+
+    return [
+      'Repurpose this post for each channel below. Keep the meaning and the brand voice. Stay within each limit. Reply with one section per channel, headed by its id, containing the post text only.',
+      '',
+      'Channels:',
+      ...channels,
+      '',
+      'Post:',
+      source.content,
+    ].join('\n');
+  }
+
+  /**
+   * Saves each channel's version as a draft in one group. Every variant is a
+   * draft, so nothing is scheduled until an admin approves it.
    */
   async repurposePost(orgId: string, body: RepurposePostDto) {
     const source = await this._postRepository.getPostById(body.postId, orgId);
@@ -1427,10 +1460,10 @@ export class PostsService {
 
     const group = uuidv4();
     const posts = [];
-    for (const integrationId of body.integrationIds) {
+    for (const variant of body.variants) {
       const integration = await this._integrationService.getIntegrationById(
         orgId,
-        integrationId
+        variant.integrationId
       );
       const provider = integration
         ? this._integrationManager.getSocialIntegration(
@@ -1438,18 +1471,18 @@ export class PostsService {
           )
         : undefined;
       if (!integration || !provider) {
-        continue;
+        throw new BadRequestException('Unknown channel in the repurposed set');
+      }
+      if (variant.content.length > provider.maxLength()) {
+        throw new BadRequestException(
+          `${integration.name} is over ${provider.maxLength()} characters`
+        );
       }
 
-      const content = await this._anthropicService.repurposeForPlatform(
-        source.content,
-        provider.name,
-        provider.maxLength()
-      );
       posts.push({
         integration: { id: integration.id },
         group,
-        value: [{ content, image: [] }],
+        value: [{ content: variant.content, image: [] }],
         settings: { __type: integration.providerIdentifier },
       });
     }

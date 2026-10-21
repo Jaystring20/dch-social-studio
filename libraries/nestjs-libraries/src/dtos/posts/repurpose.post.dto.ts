@@ -1,4 +1,21 @@
-import { ArrayMinSize, IsArray, IsDefined, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsDefined,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+class RepurposeVariant {
+  @IsString()
+  @IsDefined()
+  integrationId: string;
+
+  @IsString()
+  @IsDefined()
+  content: string;
+}
 
 export class RepurposePostDto {
   @IsString()
@@ -7,6 +24,7 @@ export class RepurposePostDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @IsString({ each: true })
-  integrationIds: string[];
+  @ValidateNested({ each: true })
+  @Type(() => RepurposeVariant)
+  variants: RepurposeVariant[];
 }
