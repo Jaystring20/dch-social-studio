@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
+import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -1410,6 +1411,58 @@ export class PostsService {
     }
 
     return newDate;
+  }
+
+  /**
+   * Turns one saved draft into a draft for each chosen channel. Every variant
+   * is saved as a draft, so nothing is scheduled until an admin approves it.
+   */
+  async repurposePost(orgId: string, body: RepurposePostDto) {
+    const source = await this._postRepository.getPostById(body.postId, orgId);
+    if (!source || source.state !== 'DRAFT') {
+      throw new BadRequestException('Only a saved draft can be repurposed');
+    }
+
+    const group = uuidv4();
+    const posts = [];
+    for (const integrationId of body.integrationIds) {
+      const integration = await this._integrationService.getIntegrationById(
+        orgId,
+        integrationId
+      );
+      const provider = integration
+        ? this._integrationManager.getSocialIntegration(
+            integration.providerIdentifier
+          )
+        : undefined;
+      if (!integration || !provider) {
+        continue;
+      }
+
+      const content = await this._openaiService.repurposeForPlatform(
+        source.content,
+        provider.name,
+        provider.maxLength()
+      );
+      posts.push({
+        integration: { id: integration.id },
+        group,
+        value: [{ content, image: [] }],
+        settings: { __type: integration.providerIdentifier },
+      });
+    }
+
+    return this.createPost(
+      orgId,
+      {
+        type: 'draft',
+        shortLink: false,
+        date: source.publishDate.toISOString(),
+        tags: [],
+        posts,
+      } as unknown as CreatePostDto,
+      'WEB'
+    );
   }
 
   async generatePostsDraft(orgId: string, body: CreateGeneratedPostsDto) {
