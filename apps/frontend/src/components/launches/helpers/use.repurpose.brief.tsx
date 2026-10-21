@@ -4,14 +4,14 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useCallback } from 'react';
 import useSWR from 'swr';
 
-export const useRepurposeBrief = (postId: string) => {
+export const useRepurposeBrief = (postId: string, voice: string) => {
   const fetch = useFetch();
 
   const load = useCallback(async (path: string) => {
     return (await fetch(path)).text();
   }, []);
 
-  return useSWR(`/posts/${postId}/repurpose-brief`, load, {
+  return useSWR(`/posts/${postId}/repurpose-brief?voice=${voice}`, load, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     revalidateIfStale: false,

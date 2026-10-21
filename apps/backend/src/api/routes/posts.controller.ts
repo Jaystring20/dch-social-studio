@@ -20,6 +20,7 @@ import { CheckPolicies } from '@gitroom/backend/services/auth/permissions/permis
 import { ApiTags } from '@nestjs/swagger';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
+import { VOICE_PROFILES } from '@gitroom/nestjs-libraries/voices/voice.profiles';
 import { CreateGeneratedPostsDto } from '@gitroom/nestjs-libraries/dtos/generator/create.generated.posts.dto';
 import { AgentGraphService } from '@gitroom/nestjs-libraries/agent/agent.graph.service';
 import { Response } from 'express';
@@ -258,12 +259,18 @@ export class PostsController {
     return this._postsService.createPost(org.id, body, 'WEB');
   }
 
+  @Get('/voices')
+  voices() {
+    return VOICE_PROFILES;
+  }
+
   @Get('/:id/repurpose-brief')
   repurposeBrief(
     @GetOrgFromRequest() org: Organization,
-    @Param('id') id: string
+    @Param('id') id: string,
+    @Query('voice') voice = 'dch'
   ) {
-    return this._postsService.repurposeBrief(org.id, id);
+    return this._postsService.repurposeBrief(org.id, id, voice);
   }
 
   @Post('/repurpose')

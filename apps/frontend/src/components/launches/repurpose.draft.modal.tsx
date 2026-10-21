@@ -7,6 +7,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/react/form/button';
 import { useIntegrationList } from '@gitroom/frontend/components/launches/helpers/use.integration.list';
 import { useRepurposeBrief } from '@gitroom/frontend/components/launches/helpers/use.repurpose.brief';
+import { useVoices } from '@gitroom/frontend/components/launches/helpers/use.voices';
 import { useSWRConfig } from 'swr';
 
 /**
@@ -22,7 +23,9 @@ export const RepurposeDraftModal: FC<{ postId: string; close: () => void }> = ({
   const t = useT();
   const { mutate } = useSWRConfig();
   const { data: integrations } = useIntegrationList();
-  const { data: brief, isLoading } = useRepurposeBrief(postId);
+  const { data: voices } = useVoices();
+  const [voice, setVoice] = useState('dch');
+  const { data: brief, isLoading } = useRepurposeBrief(postId, voice);
   const [variants, setVariants] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
@@ -70,6 +73,18 @@ export const RepurposeDraftModal: FC<{ postId: string; close: () => void }> = ({
         <div className="text-[14px] font-[600]">
           {t('step_1_copy_brief', '1. Copy the brief into Claude')}
         </div>
+        <select
+          aria-label={t('voice', 'Voice')}
+          value={voice}
+          onChange={(e) => setVoice(e.target.value)}
+          className="w-full h-[44px] px-[12px] rounded-[8px] bg-input border border-tableBorder text-textColor text-[14px]"
+        >
+          {(voices || []).map((v: { id: string; name: string }) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
         <textarea
           readOnly
           value={isLoading ? '' : brief || ''}
