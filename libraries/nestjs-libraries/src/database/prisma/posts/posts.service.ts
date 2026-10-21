@@ -7,6 +7,7 @@ import {
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
+import { findVoiceProfile } from '@gitroom/nestjs-libraries/voices/voice.profiles';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -1417,10 +1418,15 @@ export class PostsService {
    * Builds the prompt a team member pastes into Claude to write each channel's
    * version of a saved draft. The channel limits come from the providers.
    */
-  async repurposeBrief(orgId: string, postId: string) {
+  async repurposeBrief(orgId: string, postId: string, voiceId: string) {
     const source = await this._postRepository.getPostById(postId, orgId);
     if (!source || source.state !== 'DRAFT') {
       throw new BadRequestException('Only a saved draft can be repurposed');
+    }
+
+    const profile = findVoiceProfile(voiceId);
+    if (!profile) {
+      throw new BadRequestException('Unknown voice');
     }
 
     const channels = (
@@ -1437,8 +1443,26 @@ export class PostsService {
       })
       .filter(Boolean);
 
+    const voice = [
+      `Voice: ${profile.name}`,
+      ...(profile.status === 'draft'
+        ? [
+            'The rules for this voice are not set yet. Write plainly and do not add claims or figures.',
+          ]
+        : []),
+      ...profile.rules.map((rule) => `- ${rule}`),
+      ...(profile.avoid.length
+        ? ['Avoid:', ...profile.avoid.map((item) => `- ${item}`)]
+        : []),
+      ...(profile.examples.length
+        ? ['Examples of this voice:', ...profile.examples]
+        : []),
+    ];
+
     return [
-      'Repurpose this post for each channel below. Keep the meaning and the brand voice. Stay within each limit. Reply with one section per channel, headed by its id, containing the post text only.',
+      'Repurpose this post for each channel below. Keep the meaning and follow the voice below. Stay within each limit. Reply with one section per channel, headed by its id, containing the post text only.',
+      '',
+      ...voice,
       '',
       'Channels:',
       ...channels,
