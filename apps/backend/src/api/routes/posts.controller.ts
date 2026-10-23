@@ -21,6 +21,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
 import { VOICE_PROFILES } from '@gitroom/nestjs-libraries/voices/voice.profiles';
+import { WritingBriefDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.brief.dto';
+import { HOOK_FORMULAS, STORY_STRUCTURES, WRITING_FORMATS } from '@gitroom/nestjs-libraries/writing/writing.library';
 import { CreateGeneratedPostsDto } from '@gitroom/nestjs-libraries/dtos/generator/create.generated.posts.dto';
 import { AgentGraphService } from '@gitroom/nestjs-libraries/agent/agent.graph.service';
 import { Response } from 'express';
@@ -262,6 +264,21 @@ export class PostsController {
   @Get('/voices')
   voices() {
     return VOICE_PROFILES;
+  }
+
+  @Get('/writing-options')
+  writingOptions() {
+    return {
+      voices: VOICE_PROFILES,
+      formats: WRITING_FORMATS,
+      hooks: HOOK_FORMULAS,
+      stories: STORY_STRUCTURES,
+    };
+  }
+
+  @Post('/writing-brief')
+  writingBrief(@Body() body: WritingBriefDto) {
+    return this._postsService.writingBrief(body);
   }
 
   @Get('/:id/repurpose-brief')
