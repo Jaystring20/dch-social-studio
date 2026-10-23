@@ -8,6 +8,9 @@ import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
 import { findVoiceProfile } from '@gitroom/nestjs-libraries/voices/voice.profiles';
+import { WritingBriefDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.brief.dto';
+import { HOOK_FORMULAS, STORY_STRUCTURES, WRITING_FORMATS } from '@gitroom/nestjs-libraries/writing/writing.library';
+import { composeWritingBrief } from '@gitroom/nestjs-libraries/writing/writing.brief';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -1418,6 +1421,24 @@ export class PostsService {
    * Builds the prompt a team member pastes into Claude to write each channel's
    * version of a saved draft. The channel limits come from the providers.
    */
+  /**
+   * Builds the writing brief for a new piece of content. Nothing is saved:
+   * the team copies the brief into Claude, then saves the draft through the
+   * usual route.
+   */
+  writingBrief(body: WritingBriefDto) {
+    const voice = findVoiceProfile(body.voiceId);
+    const format = WRITING_FORMATS.find((item) => item.id === body.formatId);
+    const story = STORY_STRUCTURES.find((item) => item.id === body.storyId);
+    const hook = body.hookId ? HOOK_FORMULAS.find((item) => item.id === body.hookId) : undefined;
+
+    if (!voice || !format || !story || (body.hookId && !hook)) {
+      throw new BadRequestException('Unknown voice, format, hook or story');
+    }
+
+    return composeWritingBrief({ voice, format, hook, story, topic: body.topic });
+  }
+
   async repurposeBrief(orgId: string, postId: string, voiceId: string) {
     const source = await this._postRepository.getPostById(postId, orgId);
     if (!source || source.state !== 'DRAFT') {

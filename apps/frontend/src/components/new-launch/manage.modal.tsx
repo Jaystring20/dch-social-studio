@@ -36,6 +36,7 @@ import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { RepurposeDraftModal } from '@gitroom/frontend/components/launches/repurpose.draft.modal';
+import { WritingBriefModal } from '@gitroom/frontend/components/launches/writing.brief.modal';
 import { capitalize } from 'lodash';
 import { SelectCustomer } from '@gitroom/frontend/components/launches/select.customer';
 import { CopilotPopup } from '@copilotkit/react-ui';
@@ -229,6 +230,14 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       modal.closeAll();
     }
   }, [activateExitButton, dummy]);
+
+  const writeBrief = useCallback(() => {
+    modal.openModal({
+      title: t('writing_brief', 'Writing brief'),
+      maxSize: 800,
+      children: (close) => <WritingBriefModal close={close} />,
+    });
+  }, []);
 
   const repurpose = useCallback(() => {
     modal.openModal({
@@ -1145,6 +1154,14 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                   <TrashIcon />
                 </div>
                 <div>{t('delete_post', 'Delete Post')}</div>
+              </button>
+            )}
+            {!existingData?.integration && (
+              <button
+                onClick={writeBrief}
+                className="cursor-pointer text-[15px] font-[600] h-[44px] px-[16px] rounded-[8px] bg-btnSimple"
+              >
+                {t('write_brief', 'Write brief')}
               </button>
             )}
             {existingData?.integration &&
