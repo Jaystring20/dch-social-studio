@@ -22,6 +22,7 @@ import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator
 import { RepurposePostDto } from '@gitroom/nestjs-libraries/dtos/posts/repurpose.post.dto';
 import { VOICE_PROFILES } from '@gitroom/nestjs-libraries/voices/voice.profiles';
 import { WritingBriefDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.brief.dto';
+import { WritingCheckDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.check.dto';
 import { HOOK_FORMULAS, STORY_STRUCTURES, WRITING_FORMATS } from '@gitroom/nestjs-libraries/writing/writing.library';
 import { CreateGeneratedPostsDto } from '@gitroom/nestjs-libraries/dtos/generator/create.generated.posts.dto';
 import { AgentGraphService } from '@gitroom/nestjs-libraries/agent/agent.graph.service';
@@ -279,6 +280,11 @@ export class PostsController {
   @Post('/writing-brief')
   writingBrief(@Body() body: WritingBriefDto) {
     return this._postsService.writingBrief(body);
+  }
+
+  @Post('/writing-check')
+  writingCheck(@Body() body: WritingCheckDto) {
+    return this._postsService.writingCheck(body);
   }
 
   @Get('/:id/repurpose-brief')

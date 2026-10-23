@@ -11,6 +11,8 @@ import { findVoiceProfile } from '@gitroom/nestjs-libraries/voices/voice.profile
 import { WritingBriefDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.brief.dto';
 import { HOOK_FORMULAS, STORY_STRUCTURES, WRITING_FORMATS } from '@gitroom/nestjs-libraries/writing/writing.library';
 import { composeWritingBrief } from '@gitroom/nestjs-libraries/writing/writing.brief';
+import { WritingCheckDto } from '@gitroom/nestjs-libraries/dtos/posts/writing.check.dto';
+import { checkDraft } from '@gitroom/nestjs-libraries/writing/writing.check';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -1437,6 +1439,11 @@ export class PostsService {
     }
 
     return composeWritingBrief({ voice, format, hook, story, topic: body.topic });
+  }
+
+  /** Checks a pasted draft. Nothing is saved, and nothing is rewritten. */
+  writingCheck(body: WritingCheckDto) {
+    return checkDraft(body.text, body.formatId);
   }
 
   async repurposeBrief(orgId: string, postId: string, voiceId: string) {
