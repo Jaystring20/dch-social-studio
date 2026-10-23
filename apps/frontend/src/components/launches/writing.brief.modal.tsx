@@ -27,6 +27,9 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
   const [topic, setTopic] = useState('');
   const [brief, setBrief] = useState('');
   const [building, setBuilding] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [findings, setFindings] = useState<{ severity: 'error' | 'warning' | 'info'; message: string }[]>([]);
+  const [checking, setChecking] = useState(false);
 
   const build = useCallback(async () => {
     setBuilding(true);
@@ -48,6 +51,21 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
     }
     setBrief(await response.text());
   }, [voiceId, formatId, storyId, hookId, topic]);
+
+  const checkDraftText = useCallback(async () => {
+    setChecking(true);
+    const response = await fetch('/posts/writing-check', {
+      method: 'POST',
+      body: JSON.stringify({ text: draft, formatId }),
+    });
+    setChecking(false);
+
+    if (!response.ok) {
+      toaster.show(t('check_failed', 'Could not check the draft'), 'warning');
+      return;
+    }
+    setFindings(await response.json());
+  }, [draft, formatId]);
 
   const copyBrief = useCallback(async () => {
     await navigator.clipboard.writeText(brief);
@@ -113,6 +131,36 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
         <Button onClick={build} loading={building} disabled={topic.trim().length < 3} className="rounded-[4px]">
           {t('build_brief', 'Build brief')}
         </Button>
+      </div>
+
+      <div className="flex flex-col gap-[8px] border-t border-tableBorder pt-[20px]">
+        <div className="text-[14px] font-[600]">{t('check_draft', 'Check a draft')}</div>
+        <textarea
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={t('paste_draft', 'Paste the draft from Claude here')}
+          className="w-full h-[160px] p-[12px] rounded-[8px] bg-input border border-tableBorder text-textColor text-[14px] resize-y"
+        />
+        <div className="flex justify-end">
+          <Button onClick={checkDraftText} loading={checking} disabled={draft.trim().length === 0} className="rounded-[4px]">
+            {t('check', 'Check')}
+          </Button>
+        </div>
+        {findings.length > 0 && (
+          <ul className="flex flex-col gap-[6px] text-[13px]">
+            {findings.map((f, index) => (
+              <li
+                key={index}
+                className={
+                  f.severity === 'error' ? 'text-red-400' : f.severity === 'warning' ? 'text-yellow-300' : 'text-textColor/70'
+                }
+              >
+                {f.severity === 'error' ? 'Fix: ' : f.severity === 'warning' ? 'Check: ' : 'Note: '}
+                {f.message}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {brief && (
