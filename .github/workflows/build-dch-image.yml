@@ -1,0 +1,49 @@
+---
+name: "Build DCH Image"
+
+# Builds the customised Postiz image for the DCH server and publishes it to
+# GitHub's container registry under this repository's owner. The server only
+# pulls the finished image, so it doesn't need memory or disk for the build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - fix/temporal-keyword-search-attributes
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        env:
+          IMAGE: ghcr.io/jaystring20/dch-social-studio
+          # Address the browser uses to reach the backend. For the SSH-tunnel
+          # setup this is localhost; change it when a public domain is set up.
+          NEXT_PUBLIC_BACKEND_URL: http://localhost:4007/api
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -f Dockerfile.dch \
+            --build-arg NEXT_PUBLIC_VERSION=${{ github.sha }} \
+            --build-arg NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
+            -t $IMAGE:${{ github.sha }} \
+            -t $IMAGE:latest \
+            --provenance=false --sbom=false \
+            --push .
