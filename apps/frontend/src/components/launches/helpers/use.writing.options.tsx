@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import useSWR from 'swr';
 
 export interface WritingOptions {
-  voices: { id: string; name: string }[];
+  voices: { id: string; name: string; examples?: string[] }[];
   formats: { id: string; name: string }[];
   hooks: { id: number; name: string; template: string; example: string; trap: string }[];
   stories: { id: string; name: string }[];
