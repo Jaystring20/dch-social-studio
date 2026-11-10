@@ -34,9 +34,9 @@ jobs:
       - name: Build and push
         env:
           IMAGE: ghcr.io/jaystring20/dch-social-studio
-          # Address the browser uses to reach the backend. For the SSH-tunnel
-          # setup this is localhost; change it when a public domain is set up.
-          NEXT_PUBLIC_BACKEND_URL: http://localhost:4007/api
+          # Address the browser uses to reach the backend. Next.js bakes this
+          # into the build, so it must match the public domain.
+          NEXT_PUBLIC_BACKEND_URL: https://social.digitalcreativeshubltd.com/api
         run: |
           docker buildx build \
             --platform linux/amd64 \
