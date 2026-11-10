@@ -194,6 +194,23 @@ export class PostsController {
     return this._postsService.getPostsByGroup(org.id, group);
   }
 
+  // Static routes must come before '/:id', or Nest reads 'voices' and
+  // 'writing-options' as post IDs.
+  @Get('/voices')
+  voices() {
+    return VOICE_PROFILES;
+  }
+
+  @Get('/writing-options')
+  writingOptions() {
+    return {
+      voices: VOICE_PROFILES,
+      formats: WRITING_FORMATS,
+      hooks: HOOK_FORMULAS,
+      stories: STORY_STRUCTURES,
+    };
+  }
+
   @Get('/:id')
   getPost(@GetOrgFromRequest() org: Organization, @Param('id') id: string) {
     return this._postsService.getPost(org.id, id);
@@ -260,21 +277,6 @@ export class PostsController {
 
     const body = await this._postsService.mapTypeToPost(rawBody, org.id);
     return this._postsService.createPost(org.id, body, 'WEB');
-  }
-
-  @Get('/voices')
-  voices() {
-    return VOICE_PROFILES;
-  }
-
-  @Get('/writing-options')
-  writingOptions() {
-    return {
-      voices: VOICE_PROFILES,
-      formats: WRITING_FORMATS,
-      hooks: HOOK_FORMULAS,
-      stories: STORY_STRUCTURES,
-    };
   }
 
   @Post('/writing-brief')
