@@ -144,6 +144,11 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                     <div className="flex-1 min-w-0 bg-newBgLineColor rounded-[12px] overflow-hidden flex flex-col gap-[1px] blurMe">
                       {/* relative: the notifications popup spans this bar on phones */}
                       <div className="relative flex bg-newBgColorInner h-[80px] mobile:h-[64px] px-[20px] mobile:px-[12px] gap-[12px] items-center">
+                        <img
+                          src="/dch-logo.png"
+                          alt="Digital Creatives Hub"
+                          className="h-[44px] w-auto object-contain"
+                        />
                         <button
                           className="hidden mobile:flex items-center justify-center w-[36px] h-[36px] -ms-[6px] rounded-[8px] text-textItemBlur hover:text-newTextColor hover:bg-boxFocused"
                           onClick={() => setMenuOpen(true)}
