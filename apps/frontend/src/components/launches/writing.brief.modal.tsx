@@ -31,6 +31,9 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
   const [findings, setFindings] = useState<{ severity: 'error' | 'warning' | 'info'; message: string }[]>([]);
   const [checking, setChecking] = useState(false);
 
+  const selectedVoice = options?.voices?.find((v) => v.id === voiceId);
+  const selectedHook = options?.hooks?.find((h) => String(h.id) === hookId);
+
   const build = useCallback(async () => {
     setBuilding(true);
     const response = await fetch('/posts/writing-brief', {
@@ -118,8 +121,29 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
         </label>
       </div>
 
+      {(selectedVoice?.examples?.length || selectedHook) && (
+        <div className="flex flex-col gap-[10px] rounded-[8px] bg-input border border-tableBorder p-[12px] text-[13px] text-textColor/80">
+          {selectedVoice?.examples?.length ? (
+            <div className="flex flex-col gap-[4px]">
+              <div className="font-[600] text-textColor">{t('voice_sample', 'Sample lines in this voice')}</div>
+              {selectedVoice.examples.slice(0, 3).map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+            </div>
+          ) : null}
+          {selectedHook ? (
+            <div className="flex flex-col gap-[4px]">
+              <div className="font-[600] text-textColor">
+                {t('hook_example', 'Hook')}: {selectedHook.name}
+              </div>
+              <p>{selectedHook.example}</p>
+            </div>
+          ) : null}
+        </div>
+      )}
+
       <label className="flex flex-col gap-[4px] text-[13px] text-textColor/70">
-        {t('topic', 'Topic, with the source and the point you want to make')}
+        {t('topic','Topic, with the source and the point you want to make')}
         <textarea
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
