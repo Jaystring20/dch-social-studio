@@ -7,6 +7,9 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/react/form/button';
 import { useWritingOptions } from '@gitroom/frontend/components/launches/helpers/use.writing.options';
 
+// Matches MaxLength on WritingBriefDto.topic
+const TOPIC_MAX_LENGTH = 6000;
+
 const selectClass =
   'w-full h-[44px] px-[12px] rounded-[8px] bg-input border border-tableBorder text-textColor text-[14px]';
 
@@ -49,7 +52,9 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
     setBuilding(false);
 
     if (!response.ok) {
-      toaster.show(t('brief_failed', 'Could not build the brief'), 'warning');
+      // Show the server's reason (for example a topic that is too long)
+      const { message } = await response.json().catch(() => ({} as any));
+      toaster.show((Array.isArray(message) ? message[0] : message) || t('brief_failed', 'Could not build the brief'), 'warning');
       return;
     }
     setBrief(await response.text());
@@ -147,8 +152,12 @@ export const WritingBriefModal: FC<{ close: () => void }> = ({ close }) => {
         <textarea
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
+          maxLength={TOPIC_MAX_LENGTH}
           className="w-full h-[120px] p-[12px] rounded-[8px] bg-input border border-tableBorder text-textColor text-[14px] resize-y"
         />
+        <span className="self-end text-[12px] text-textColor">
+          {topic.length} / {TOPIC_MAX_LENGTH}
+        </span>
       </label>
 
       <div className="flex justify-end">

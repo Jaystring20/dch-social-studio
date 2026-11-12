@@ -19,6 +19,6 @@ export class WritingBriefDto {
 
   @IsString()
   @MinLength(3)
-  @MaxLength(2000)
+  @MaxLength(6000)
   topic: string;
 }
