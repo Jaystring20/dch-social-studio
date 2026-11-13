@@ -4,12 +4,17 @@ name: "Build DCH Image"
 # Builds the customised Postiz image for the DCH server and publishes it to
 # GitHub's container registry under this repository's owner. The server only
 # pulls the finished image, so it doesn't need memory or disk for the build.
+#
+# This branch (the upstream Postiz upgrade) publishes the :upgrade tag only, so
+# the :latest image that the live server pulls stays untouched until the
+# upgrade has been tested.
 
 on:
   workflow_dispatch:
   push:
     branches:
       - fix/temporal-keyword-search-attributes
+      - upgrade/postiz-upstream
 
 jobs:
   build-image:
@@ -44,6 +49,6 @@ jobs:
             --build-arg NEXT_PUBLIC_VERSION=${{ github.sha }} \
             --build-arg NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL \
             -t $IMAGE:${{ github.sha }} \
-            -t $IMAGE:latest \
+            -t $IMAGE:upgrade \
             --provenance=false --sbom=false \
             --push .
